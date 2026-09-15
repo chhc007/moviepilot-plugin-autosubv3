@@ -1,0 +1,19 @@
+{
+  "AutoSubv3": {
+    "name": "AI字幕生成(联动版·HymT2定制)",
+    "description": "自动生成字幕并翻译成中文，支持 faster-whisper 识别、字幕提取和大模型并发翻译，可联动字幕匹配功能。定制版在 ifsherlock 原版基础上内置 Hy-MT2 专用翻译方案。",
+    "labels": "字幕,AI,翻译",
+    "version": "3.6.0",
+    "icon": "https://raw.githubusercontent.com/ifsherlock/MoviePilot-Plugins/main/icons/autosubtitles.jpeg",
+    "author": "ifsherlock, chhc007",
+    "author_url": "https://github.com/chhc007",
+    "level": 2,
+    "system_version": ">=2.13.5",
+    "v2": true,
+    "v3": false,
+    "repo": "https://github.com/chhc007/moviepilot-plugin-autosubv3",
+    "history": {
+      "v3.6.0": "定制版：移植 AutoSubv2 的 Hy-MT2 专用字幕翻译方案（官方 Structured Data 2 模板结构化批量翻译，行数严格保持、防合译错位、漏行自动重试+单行兜底，输出仅中文译文替换原字幕内容）。新增 use_hymt2 开关与 hy_mt2_key/url/model/batch_size/context_window/max_retries/fallback 独立配置（默认值同 AutoSubv2：url=http://192.168.123.146:11436，model=hymt2-q8，batch=20，context=10，retries=3，fallback=开启）；Hy-MT2 走独立 OpenAI 兼容客户端旁路，不影响 v3 端点池体系；翻译入口 _AutoSubv3__translate_zh_subtitle 增加 hymt2 分支，插件 ID/类名保持 AutoSubv3，海拉鲁字幕大师联动零改动。基于 ifsherlock v3.5.61 全量功能"
+    }
+  }
+}
