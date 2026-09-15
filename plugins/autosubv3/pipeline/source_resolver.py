@@ -1,3 +1,7 @@
+import os
+import shutil
+import time
+
 import iso639
 
 from ..core.models import ResolvedSource
@@ -93,7 +97,29 @@ class SourceResolver:
         subtitle_lang = iso639.to_iso639_1(subtitle_lang) \
             if (subtitle_lang and iso639.find(subtitle_lang) and iso639.to_iso639_1(subtitle_lang)) else 'und'
         extracted_sub_path = f"{subtitle_file}.{subtitle_lang}.srt"
+        # 安全保护：目标路径若已有同名字幕（如被判定残缺的外挂），先备份再覆盖
+        try:
+            if os.path.exists(extracted_sub_path):
+                backup_path = f"{extracted_sub_path}.bak"
+                if os.path.exists(backup_path):
+                    backup_path = f"{extracted_sub_path}.{int(time.time())}.bak"
+                shutil.copy2(extracted_sub_path, backup_path)
+                if logger:
+                    logger.info(f"提取前备份已存在的同名字幕：{backup_path}")
+        except Exception as exc:
+            if logger:
+                logger.warning(f"备份同名字幕失败（继续提取）：{exc}")
         ffmpeg_factory().extract_subtitle_from_video(video_file, extracted_sub_path, subtitle_index)
+        # 问题C修复：校验提取产物存在且非空，避免 ffmpeg 静默失败/空文件被当作成功
+        try:
+            if not os.path.exists(extracted_sub_path) or os.path.getsize(extracted_sub_path) <= 0:
+                if logger:
+                    logger.error(f"提取内嵌字幕失败：产物为空文件或不存在 {extracted_sub_path}")
+                return False, None, None
+        except Exception as exc:
+            if logger:
+                logger.error(f"提取内嵌字幕校验异常：{exc}")
+            return False, None, None
         if logger:
             logger.info(f"提取字幕完成：{extracted_sub_path}")
         return True, subtitle_lang, (extracted_sub_path, ResolvedSource.EMBEDDED.value)

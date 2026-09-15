@@ -405,6 +405,45 @@ class AutoSubv3CompatMixin:
             reuse_source_lang=reuse_source_lang,
         )
 
+    def _AutoSubv3__external_subtitle_usable(
+        self,
+        video_file,
+        external_sub_exist,
+        external_sub_lang,
+        exist_sub_name,
+        video_meta,
+    ):
+        """检查外挂字幕是否真的可用（存在 + 完整）。
+
+        问题A修复：残缺外挂字幕（只覆盖开头几分钟）不应被当作完整源使用，
+        应回退到内嵌字幕轨。覆盖率阈值 0.6（最后一条字幕时间 >= 视频时长60%）。
+        :return: (usable, reason)  usable=True 可直接使用；False + reason 为不可用原因
+        """
+        if not external_sub_exist:
+            return False, "外挂字幕不存在"
+        if not exist_sub_name:
+            return False, "外挂字幕文件名缺失"
+        if not video_meta:
+            return True, ""
+        video_dir, _ = os.path.split(video_file)
+        srt_path = os.path.join(video_dir, exist_sub_name)
+        if not os.path.exists(srt_path):
+            return False, "外挂字幕文件不存在"
+        try:
+            duration = float(video_meta.get("format", {}).get("duration") or 0)
+        except Exception:
+            duration = 0
+        if duration <= 0:
+            # 拿不到视频时长，无法校验完整性，保守当作可用
+            return True, ""
+        ratio = SubtitleOutputService.srt_coverage_ratio(srt_path, duration)
+        if ratio is None:
+            # 解析失败（空文件/坏格式），保守当作不可用
+            return False, f"外挂字幕解析失败（空或格式错误）"
+        if ratio < 0.6:
+            return False, f"外挂字幕覆盖不完整（{ratio:.0%} < 60%），视为残缺"
+        return True, ""
+
     def _AutoSubv3__do_speech_recognition(self, audio_lang, audio_file, video_file=None):
         return self._get_asr_service().do_speech_recognition(
             audio_lang,
@@ -437,10 +476,15 @@ class AutoSubv3CompatMixin:
             subtitle_path = Path(source_path)
             if not subtitle_path.exists() or subtitle_path.suffix.lower() != ".srt":
                 logger.error(f"[GenSub] 指定字幕不可用或不是 SRT：{source_path}")
-                return False, None, None
-            lang = self._normalize_text(source_subtitle_lang) or "en"
-            logger.info(f"[GenSub] 使用联动指定字幕：{subtitle_path.name} lang={lang}")
-            return True, lang, (subtitle_path, ResolvedSource.MATCHED_EXTERNAL.value)
+                # 问题B修复：指定字幕不可用时不再直接失败，回退到内嵌字幕/自动流程
+                logger.info("[GenSub] 指定字幕不可用，回退内嵌字幕/自动流程 ...")
+                source_path = ""
+                # 重置策略为 AUTO，否则后续外挂/内嵌检查会因策略不匹配而被跳过
+                policy = SourcePolicy.AUTO.value
+            else:
+                lang = self._normalize_text(source_subtitle_lang) or "en"
+                logger.info(f"[GenSub] 使用联动指定字幕：{subtitle_path.name} lang={lang}")
+                return True, lang, (subtitle_path, ResolvedSource.MATCHED_EXTERNAL.value)
 
         # 获取文件元数据
         logger.info(f"[GenSub] 获取视频元数据：{video_file}")
@@ -494,12 +538,26 @@ class AutoSubv3CompatMixin:
                 only_srt=True,
                 strict=strict,
             )
+            # 问题A修复：外挂字幕完整性校验——残缺外挂（只覆盖开头几分钟）视为不可用，回退内嵌
+            if external_sub_exist:
+                usable, unusable_reason = self._AutoSubv3__external_subtitle_usable(
+                    video_file,
+                    external_sub_exist,
+                    external_sub_lang,
+                    exist_sub_name,
+                    video_meta,
+                )
+                if not usable:
+                    logger.warning(f"[GenSub] 外挂字幕不可用（{unusable_reason}），回退内嵌字幕/自动流程 ...")
+                    external_sub_exist, external_sub_lang, exist_sub_name = False, None, None
             if policy == SourcePolicy.LOCAL_EXTERNAL.value:
                 if not external_sub_exist:
-                    logger.info("[GenSub] 已指定本地外挂字幕，但未找到可用 SRT")
-                    return False, None, None
-                logger.info(f"[GenSub] 使用本地外挂字幕：{exist_sub_name} lang={external_sub_lang}")
-                return True, iso639.to_iso639_1(external_sub_lang), (get_sub_path(), ResolvedSource.LOCAL_EXTERNAL.value)
+                    logger.info("[GenSub] 已指定本地外挂字幕，但未找到可用 SRT，回退内嵌字幕/自动流程 ...")
+                    # 问题B修复：本地外挂不可用时不再直接失败，降级继续走内嵌检查
+                    policy = SourcePolicy.AUTO.value
+                else:
+                    logger.info(f"[GenSub] 使用本地外挂字幕：{exist_sub_name} lang={external_sub_lang}")
+                    return True, iso639.to_iso639_1(external_sub_lang), (get_sub_path(), ResolvedSource.LOCAL_EXTERNAL.value)
 
         inner_sub_exist, subtitle_index, inner_sub_lang = False, None, None
         if policy in (SourcePolicy.AUTO.value, SourcePolicy.EMBEDDED.value):

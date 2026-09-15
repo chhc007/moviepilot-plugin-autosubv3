@@ -242,3 +242,40 @@ class SubtitleOutputService:
             return True
 
         return False
+
+    @staticmethod
+    def srt_coverage_ratio(srt_path, video_duration):
+        """计算 SRT 字幕相对视频时长的覆盖率：最后一条字幕的结束时间 / 视频总时长。
+
+        :param srt_path: SRT 文件路径
+        :param video_duration: 视频总时长（秒）
+        :return: 0~1 的覆盖率；无法解析时返回 None
+        """
+        if not srt_path or not video_duration:
+            return None
+        try:
+            import os
+            last_end = 0.0
+            with open(srt_path, "r", encoding="utf-8", errors="replace") as f:
+                for line in f:
+                    if "-->" in line:
+                        parts = line.split("-->")
+                        if len(parts) == 2:
+                            end_part = parts[1].strip()
+                            # 支持 00:00:01,000 或 00:00:01.000
+                            end_part = end_part.replace(",", ".")
+                            pieces = end_part.split()
+                            if not pieces:
+                                continue
+                            time_str = pieces[0].strip()
+                            try:
+                                h, m, s = time_str.split(":")
+                                last_end = int(h) * 3600 + int(m) * 60 + float(s)
+                            except Exception:
+                                continue
+            if last_end <= 0:
+                return None
+            ratio = last_end / float(video_duration)
+            return min(max(ratio, 0.0), 1.0)
+        except Exception:
+            return None
