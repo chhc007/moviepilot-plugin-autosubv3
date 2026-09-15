@@ -54,6 +54,14 @@ const defaultConfig = {
   enable_batch: true,
   batch_size: 20,
   parallel_workers: 10,
+  use_hymt2: false,
+  hy_mt2_url: 'http://192.168.123.146:11436',
+  hy_mt2_key: '',
+  hy_mt2_model: 'hymt2-q8',
+  hy_mt2_batch_size: 20,
+  hy_mt2_context_window: 10,
+  hy_mt2_max_retries: 3,
+  hy_mt2_fallback: true,
 }
 
 function normalizeModelValue(value) {
@@ -263,6 +271,46 @@ function save() {
           </VCol>
           <VCol cols="12" md="6">
             <VTextField v-model="config.parallel_workers" label="并发线程数" placeholder="10" />
+          </VCol>
+        </VRow>
+          </section>
+
+      <section class="config-section">
+        <div class="section-title">Hy-MT2 专用翻译（SHIELD 定制）</div>
+        <VRow>
+          <VCol cols="12">
+            <VSwitch
+              v-model="config.use_hymt2"
+              label="启用 Hy-MT2 专用翻译方案"
+              hint="官方模板结构化批量翻译：行数严格保持、防合译错位、漏行自动重试+单行兜底（需在下方面板配置模型）"
+              persistent-hint
+              color="primary"
+            />
+          </VCol>
+        </VRow>
+        <VRow v-if="config.use_hymt2">
+          <VCol cols="12" md="4">
+            <VTextField v-model="config.hy_mt2_url" label="Hy-MT2 API URL" placeholder="http://192.168.123.146:11436" />
+          </VCol>
+          <VCol cols="12" md="4">
+            <VTextField v-model="config.hy_mt2_key" label="Hy-MT2 API 密钥" placeholder="sk-xxx（Ollama 可任意填写）" />
+          </VCol>
+          <VCol cols="12" md="4">
+            <VTextField v-model="config.hy_mt2_model" label="Hy-MT2 模型名称" placeholder="hymt2-q8" />
+          </VCol>
+        </VRow>
+        <VRow v-if="config.use_hymt2">
+          <VCol cols="12" md="3">
+            <VTextField v-model="config.hy_mt2_batch_size" label="每批翻译行数" placeholder="20" />
+          </VCol>
+          <VCol cols="12" md="3">
+            <VTextField v-model="config.hy_mt2_context_window" label="上下文窗口大小" placeholder="10" />
+          </VCol>
+          <VCol cols="12" md="3">
+            <VTextField v-model="config.hy_mt2_max_retries" label="批次重试次数" placeholder="3" />
+          </VCol>
+          <VCol cols="12" md="3">
+            <VSwitch v-model="config.hy_mt2_fallback" label="启用单行兜底" hint="重试后仍缺失的行用前文上下文单独补译" persistent-hint />
           </VCol>
         </VRow>
           </section>

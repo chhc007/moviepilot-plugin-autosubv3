@@ -11,7 +11,7 @@ const _hoisted_4$1 = { class: "endpoint-list" };
 const _hoisted_5$1 = { class: "endpoint-header" };
 const _hoisted_6$1 = { class: "endpoint-identity" };
 const _hoisted_7$1 = { class: "endpoint-header-actions" };
-const _hoisted_8 = { class: "endpoint-footer" };
+const _hoisted_8$1 = { class: "endpoint-footer" };
 const _hoisted_9 = { class: "endpoint-options" };
 const _hoisted_10 = { class: "endpoint-test-actions" };
 
@@ -400,7 +400,7 @@ return (_ctx, _cache) => {
             ]),
             _: 2
           }, 1024),
-          _createElementVNode$1("div", _hoisted_8, [
+          _createElementVNode$1("div", _hoisted_8$1, [
             _createElementVNode$1("div", _hoisted_9, [
               _createVNode$1(_component_VSwitch, {
                 modelValue: endpoint.use_proxy,
@@ -476,7 +476,8 @@ const _hoisted_3 = { class: "config-section" };
 const _hoisted_4 = { class: "config-section" };
 const _hoisted_5 = { class: "config-section" };
 const _hoisted_6 = { class: "config-section" };
-const _hoisted_7 = { class: "config-footer" };
+const _hoisted_7 = { class: "config-section" };
+const _hoisted_8 = { class: "config-footer" };
 
 const {computed,reactive,ref,watch} = await importShared('vue');
 
@@ -539,6 +540,14 @@ const defaultConfig = {
   enable_batch: true,
   batch_size: 20,
   parallel_workers: 10,
+  use_hymt2: false,
+  hy_mt2_url: 'http://192.168.123.146:11436',
+  hy_mt2_key: '',
+  hy_mt2_model: 'hymt2-q8',
+  hy_mt2_batch_size: 20,
+  hy_mt2_context_window: 10,
+  hy_mt2_max_retries: 3,
+  hy_mt2_fallback: true,
 };
 
 function normalizeModelValue(value) {
@@ -685,14 +694,14 @@ return (_ctx, _cache) => {
       color: "transparent"
     }, {
       default: _withCtx(() => [
-        _cache[34] || (_cache[34] = _createElementVNode("div", { class: "text-h6 ms-3" }, "AI字幕生成配置", -1)),
+        _cache[42] || (_cache[42] = _createElementVNode("div", { class: "text-h6 ms-3" }, "AI字幕生成配置", -1)),
         _createVNode(_component_VSpacer),
         _createVNode(_component_VBtn, {
           variant: "text",
           "prepend-icon": "mdi-format-list-bulleted",
           onClick: _cache[0] || (_cache[0] = $event => (emit('switch')))
         }, {
-          default: _withCtx(() => [...(_cache[32] || (_cache[32] = [
+          default: _withCtx(() => [...(_cache[40] || (_cache[40] = [
             _createTextVNode("查看任务", -1)
           ]))]),
           _: 1
@@ -704,7 +713,7 @@ return (_ctx, _cache) => {
           loading: saving.value,
           onClick: save
         }, {
-          default: _withCtx(() => [...(_cache[33] || (_cache[33] = [
+          default: _withCtx(() => [...(_cache[41] || (_cache[41] = [
             _createTextVNode("保存", -1)
           ]))]),
           _: 1
@@ -730,7 +739,7 @@ return (_ctx, _cache) => {
           value: "basic",
           "prepend-icon": "mdi-tune-variant"
         }, {
-          default: _withCtx(() => [...(_cache[35] || (_cache[35] = [
+          default: _withCtx(() => [...(_cache[43] || (_cache[43] = [
             _createTextVNode("基础设置", -1)
           ]))]),
           _: 1
@@ -739,7 +748,7 @@ return (_ctx, _cache) => {
           value: "api",
           "prepend-icon": "mdi-api"
         }, {
-          default: _withCtx(() => [...(_cache[36] || (_cache[36] = [
+          default: _withCtx(() => [...(_cache[44] || (_cache[44] = [
             _createTextVNode("AI API", -1)
           ]))]),
           _: 1
@@ -761,13 +770,13 @@ return (_ctx, _cache) => {
         : _createCommentVNode("", true),
       _createVNode(_component_VWindow, {
         modelValue: activeTab.value,
-        "onUpdate:modelValue": _cache[29] || (_cache[29] = $event => ((activeTab).value = $event))
+        "onUpdate:modelValue": _cache[37] || (_cache[37] = $event => ((activeTab).value = $event))
       }, {
         default: _withCtx(() => [
           _createVNode(_component_VWindowItem, { value: "basic" }, {
             default: _withCtx(() => [
               _createElementVNode("section", _hoisted_3, [
-                _cache[37] || (_cache[37] = _createElementVNode("div", { class: "section-title" }, "基础设置", -1)),
+                _cache[45] || (_cache[45] = _createElementVNode("div", { class: "section-title" }, "基础设置", -1)),
                 _createVNode(_component_VRow, null, {
                   default: _withCtx(() => [
                     _createVNode(_component_VCol, {
@@ -911,7 +920,7 @@ return (_ctx, _cache) => {
                 })
               ]),
               _createElementVNode("section", _hoisted_4, [
-                _cache[38] || (_cache[38] = _createElementVNode("div", { class: "section-title" }, "翻译参数", -1)),
+                _cache[46] || (_cache[46] = _createElementVNode("div", { class: "section-title" }, "翻译参数", -1)),
                 _createVNode(_component_VRow, null, {
                   default: _withCtx(() => [
                     _createVNode(_component_VCol, {
@@ -994,7 +1003,141 @@ return (_ctx, _cache) => {
                 })
               ]),
               _createElementVNode("section", _hoisted_5, [
-                _cache[39] || (_cache[39] = _createElementVNode("div", { class: "section-title" }, "Whisper 与输出", -1)),
+                _cache[47] || (_cache[47] = _createElementVNode("div", { class: "section-title" }, "Hy-MT2 专用翻译（SHIELD 定制）", -1)),
+                _createVNode(_component_VRow, null, {
+                  default: _withCtx(() => [
+                    _createVNode(_component_VCol, { cols: "12" }, {
+                      default: _withCtx(() => [
+                        _createVNode(_component_VSwitch, {
+                          modelValue: config.use_hymt2,
+                          "onUpdate:modelValue": _cache[17] || (_cache[17] = $event => ((config.use_hymt2) = $event)),
+                          label: "启用 Hy-MT2 专用翻译方案",
+                          hint: "官方模板结构化批量翻译：行数严格保持、防合译错位、漏行自动重试+单行兜底（需在下方面板配置模型）",
+                          "persistent-hint": "",
+                          color: "primary"
+                        }, null, 8, ["modelValue"])
+                      ]),
+                      _: 1
+                    })
+                  ]),
+                  _: 1
+                }),
+                (config.use_hymt2)
+                  ? (_openBlock(), _createBlock(_component_VRow, { key: 0 }, {
+                      default: _withCtx(() => [
+                        _createVNode(_component_VCol, {
+                          cols: "12",
+                          md: "4"
+                        }, {
+                          default: _withCtx(() => [
+                            _createVNode(_component_VTextField, {
+                              modelValue: config.hy_mt2_url,
+                              "onUpdate:modelValue": _cache[18] || (_cache[18] = $event => ((config.hy_mt2_url) = $event)),
+                              label: "Hy-MT2 API URL",
+                              placeholder: "http://192.168.123.146:11436"
+                            }, null, 8, ["modelValue"])
+                          ]),
+                          _: 1
+                        }),
+                        _createVNode(_component_VCol, {
+                          cols: "12",
+                          md: "4"
+                        }, {
+                          default: _withCtx(() => [
+                            _createVNode(_component_VTextField, {
+                              modelValue: config.hy_mt2_key,
+                              "onUpdate:modelValue": _cache[19] || (_cache[19] = $event => ((config.hy_mt2_key) = $event)),
+                              label: "Hy-MT2 API 密钥",
+                              placeholder: "sk-xxx（Ollama 可任意填写）"
+                            }, null, 8, ["modelValue"])
+                          ]),
+                          _: 1
+                        }),
+                        _createVNode(_component_VCol, {
+                          cols: "12",
+                          md: "4"
+                        }, {
+                          default: _withCtx(() => [
+                            _createVNode(_component_VTextField, {
+                              modelValue: config.hy_mt2_model,
+                              "onUpdate:modelValue": _cache[20] || (_cache[20] = $event => ((config.hy_mt2_model) = $event)),
+                              label: "Hy-MT2 模型名称",
+                              placeholder: "hymt2-q8"
+                            }, null, 8, ["modelValue"])
+                          ]),
+                          _: 1
+                        })
+                      ]),
+                      _: 1
+                    }))
+                  : _createCommentVNode("", true),
+                (config.use_hymt2)
+                  ? (_openBlock(), _createBlock(_component_VRow, { key: 1 }, {
+                      default: _withCtx(() => [
+                        _createVNode(_component_VCol, {
+                          cols: "12",
+                          md: "3"
+                        }, {
+                          default: _withCtx(() => [
+                            _createVNode(_component_VTextField, {
+                              modelValue: config.hy_mt2_batch_size,
+                              "onUpdate:modelValue": _cache[21] || (_cache[21] = $event => ((config.hy_mt2_batch_size) = $event)),
+                              label: "每批翻译行数",
+                              placeholder: "20"
+                            }, null, 8, ["modelValue"])
+                          ]),
+                          _: 1
+                        }),
+                        _createVNode(_component_VCol, {
+                          cols: "12",
+                          md: "3"
+                        }, {
+                          default: _withCtx(() => [
+                            _createVNode(_component_VTextField, {
+                              modelValue: config.hy_mt2_context_window,
+                              "onUpdate:modelValue": _cache[22] || (_cache[22] = $event => ((config.hy_mt2_context_window) = $event)),
+                              label: "上下文窗口大小",
+                              placeholder: "10"
+                            }, null, 8, ["modelValue"])
+                          ]),
+                          _: 1
+                        }),
+                        _createVNode(_component_VCol, {
+                          cols: "12",
+                          md: "3"
+                        }, {
+                          default: _withCtx(() => [
+                            _createVNode(_component_VTextField, {
+                              modelValue: config.hy_mt2_max_retries,
+                              "onUpdate:modelValue": _cache[23] || (_cache[23] = $event => ((config.hy_mt2_max_retries) = $event)),
+                              label: "批次重试次数",
+                              placeholder: "3"
+                            }, null, 8, ["modelValue"])
+                          ]),
+                          _: 1
+                        }),
+                        _createVNode(_component_VCol, {
+                          cols: "12",
+                          md: "3"
+                        }, {
+                          default: _withCtx(() => [
+                            _createVNode(_component_VSwitch, {
+                              modelValue: config.hy_mt2_fallback,
+                              "onUpdate:modelValue": _cache[24] || (_cache[24] = $event => ((config.hy_mt2_fallback) = $event)),
+                              label: "启用单行兜底",
+                              hint: "重试后仍缺失的行用前文上下文单独补译",
+                              "persistent-hint": ""
+                            }, null, 8, ["modelValue"])
+                          ]),
+                          _: 1
+                        })
+                      ]),
+                      _: 1
+                    }))
+                  : _createCommentVNode("", true)
+              ]),
+              _createElementVNode("section", _hoisted_6, [
+                _cache[48] || (_cache[48] = _createElementVNode("div", { class: "section-title" }, "Whisper 与输出", -1)),
                 _createVNode(_component_VRow, null, {
                   default: _withCtx(() => [
                     _createVNode(_component_VCol, {
@@ -1004,7 +1147,7 @@ return (_ctx, _cache) => {
                       default: _withCtx(() => [
                         _createVNode(_component_VSelect, {
                           modelValue: config.faster_whisper_model,
-                          "onUpdate:modelValue": _cache[17] || (_cache[17] = $event => ((config.faster_whisper_model) = $event)),
+                          "onUpdate:modelValue": _cache[25] || (_cache[25] = $event => ((config.faster_whisper_model) = $event)),
                           items: whisperModels,
                           label: "Whisper 模型",
                           hint: "模型越大效果越好，耗时越久",
@@ -1020,7 +1163,7 @@ return (_ctx, _cache) => {
                       default: _withCtx(() => [
                         _createVNode(_component_VSelect, {
                           modelValue: config.subtitle_output_mode,
-                          "onUpdate:modelValue": _cache[18] || (_cache[18] = $event => ((config.subtitle_output_mode) = $event)),
+                          "onUpdate:modelValue": _cache[26] || (_cache[26] = $event => ((config.subtitle_output_mode) = $event)),
                           items: outputModes,
                           label: "字幕输出模式"
                         }, null, 8, ["modelValue"])
@@ -1039,7 +1182,7 @@ return (_ctx, _cache) => {
                       default: _withCtx(() => [
                         _createVNode(_component_VTextField, {
                           modelValue: config.max_segment_duration,
-                          "onUpdate:modelValue": _cache[19] || (_cache[19] = $event => ((config.max_segment_duration) = $event)),
+                          "onUpdate:modelValue": _cache[27] || (_cache[27] = $event => ((config.max_segment_duration) = $event)),
                           label: "每段字幕最大时长（秒）",
                           placeholder: "8"
                         }, null, 8, ["modelValue"])
@@ -1053,7 +1196,7 @@ return (_ctx, _cache) => {
                       default: _withCtx(() => [
                         _createVNode(_component_VTextField, {
                           modelValue: config.max_segment_chars,
-                          "onUpdate:modelValue": _cache[20] || (_cache[20] = $event => ((config.max_segment_chars) = $event)),
+                          "onUpdate:modelValue": _cache[28] || (_cache[28] = $event => ((config.max_segment_chars) = $event)),
                           label: "每段字幕最大字符数",
                           placeholder: "50"
                         }, null, 8, ["modelValue"])
@@ -1067,7 +1210,7 @@ return (_ctx, _cache) => {
                       default: _withCtx(() => [
                         _createVNode(_component_VTextField, {
                           modelValue: config.file_size,
-                          "onUpdate:modelValue": _cache[21] || (_cache[21] = $event => ((config.file_size) = $event)),
+                          "onUpdate:modelValue": _cache[29] || (_cache[29] = $event => ((config.file_size) = $event)),
                           label: "文件最小大小（MB）",
                           placeholder: "10"
                         }, null, 8, ["modelValue"])
@@ -1086,7 +1229,7 @@ return (_ctx, _cache) => {
                       default: _withCtx(() => [
                         _createVNode(_component_VSelect, {
                           modelValue: config.translate_preference,
-                          "onUpdate:modelValue": _cache[22] || (_cache[22] = $event => ((config.translate_preference) = $event)),
+                          "onUpdate:modelValue": _cache[30] || (_cache[30] = $event => ((config.translate_preference) = $event)),
                           items: preferences,
                           label: "字幕源语言偏好"
                         }, null, 8, ["modelValue"])
@@ -1100,7 +1243,7 @@ return (_ctx, _cache) => {
                       default: _withCtx(() => [
                         _createVNode(_component_VSwitch, {
                           modelValue: config.auto_detect_language,
-                          "onUpdate:modelValue": _cache[23] || (_cache[23] = $event => ((config.auto_detect_language) = $event)),
+                          "onUpdate:modelValue": _cache[31] || (_cache[31] = $event => ((config.auto_detect_language) = $event)),
                           label: "自动检测语言",
                           "hide-details": ""
                         }, null, 8, ["modelValue"])
@@ -1114,7 +1257,7 @@ return (_ctx, _cache) => {
                       default: _withCtx(() => [
                         _createVNode(_component_VSwitch, {
                           modelValue: config.proxy,
-                          "onUpdate:modelValue": _cache[24] || (_cache[24] = $event => ((config.proxy) = $event)),
+                          "onUpdate:modelValue": _cache[32] || (_cache[32] = $event => ((config.proxy) = $event)),
                           label: "使用代理下载模型",
                           "hide-details": ""
                         }, null, 8, ["modelValue"])
@@ -1125,15 +1268,15 @@ return (_ctx, _cache) => {
                   _: 1
                 })
               ]),
-              _createElementVNode("section", _hoisted_6, [
-                _cache[40] || (_cache[40] = _createElementVNode("div", { class: "section-title" }, "路径", -1)),
+              _createElementVNode("section", _hoisted_7, [
+                _cache[49] || (_cache[49] = _createElementVNode("div", { class: "section-title" }, "路径", -1)),
                 _createVNode(_component_VRow, null, {
                   default: _withCtx(() => [
                     _createVNode(_component_VCol, { cols: "12" }, {
                       default: _withCtx(() => [
                         _createVNode(_component_VTextarea, {
                           modelValue: config.path_whitelist,
-                          "onUpdate:modelValue": _cache[25] || (_cache[25] = $event => ((config.path_whitelist) = $event)),
+                          "onUpdate:modelValue": _cache[33] || (_cache[33] = $event => ((config.path_whitelist) = $event)),
                           label: "监控路径（每行一个）",
                           rows: 3,
                           placeholder: "/mnt/media/movies\n/downloads",
@@ -1147,7 +1290,7 @@ return (_ctx, _cache) => {
                       default: _withCtx(() => [
                         _createVNode(_component_VTextarea, {
                           modelValue: config.path_list,
-                          "onUpdate:modelValue": _cache[26] || (_cache[26] = $event => ((config.path_list) = $event)),
+                          "onUpdate:modelValue": _cache[34] || (_cache[34] = $event => ((config.path_list) = $event)),
                           label: "媒体路径（手动执行时使用）",
                           rows: 3,
                           placeholder: "绝对路径，每行一个，支持文件和文件夹"
@@ -1171,8 +1314,8 @@ return (_ctx, _cache) => {
                 "active-endpoint": config.openai_active_endpoint,
                 "fallback-enabled": config.openai_fallback_enabled,
                 "onUpdate:endpoints": updateEndpoints,
-                "onUpdate:activeEndpoint": _cache[27] || (_cache[27] = $event => (config.openai_active_endpoint = $event)),
-                "onUpdate:fallbackEnabled": _cache[28] || (_cache[28] = $event => (config.openai_fallback_enabled = $event))
+                "onUpdate:activeEndpoint": _cache[35] || (_cache[35] = $event => (config.openai_active_endpoint = $event)),
+                "onUpdate:fallbackEnabled": _cache[36] || (_cache[36] = $event => (config.openai_fallback_enabled = $event))
               }, null, 8, ["api", "plugin-base", "endpoints", "active-endpoint", "fallback-enabled"])
             ]),
             _: 1
@@ -1180,13 +1323,13 @@ return (_ctx, _cache) => {
         ]),
         _: 1
       }, 8, ["modelValue"]),
-      _createElementVNode("div", _hoisted_7, [
+      _createElementVNode("div", _hoisted_8, [
         _createVNode(_component_VBtn, {
           variant: "text",
           "prepend-icon": "mdi-format-list-bulleted",
-          onClick: _cache[30] || (_cache[30] = $event => (emit('switch')))
+          onClick: _cache[38] || (_cache[38] = $event => (emit('switch')))
         }, {
-          default: _withCtx(() => [...(_cache[41] || (_cache[41] = [
+          default: _withCtx(() => [...(_cache[50] || (_cache[50] = [
             _createTextVNode("查看任务", -1)
           ]))]),
           _: 1
@@ -1194,9 +1337,9 @@ return (_ctx, _cache) => {
         _createVNode(_component_VSpacer),
         _createVNode(_component_VBtn, {
           variant: "text",
-          onClick: _cache[31] || (_cache[31] = $event => (emit('close')))
+          onClick: _cache[39] || (_cache[39] = $event => (emit('close')))
         }, {
-          default: _withCtx(() => [...(_cache[42] || (_cache[42] = [
+          default: _withCtx(() => [...(_cache[51] || (_cache[51] = [
             _createTextVNode("关闭", -1)
           ]))]),
           _: 1
@@ -1207,7 +1350,7 @@ return (_ctx, _cache) => {
           loading: saving.value,
           onClick: save
         }, {
-          default: _withCtx(() => [...(_cache[43] || (_cache[43] = [
+          default: _withCtx(() => [...(_cache[52] || (_cache[52] = [
             _createTextVNode("保存", -1)
           ]))]),
           _: 1
@@ -1219,6 +1362,6 @@ return (_ctx, _cache) => {
 }
 
 };
-const Config = /*#__PURE__*/_export_sfc(_sfc_main, [['__scopeId',"data-v-6130bef9"]]);
+const Config = /*#__PURE__*/_export_sfc(_sfc_main, [['__scopeId',"data-v-b0abe559"]]);
 
 export { Config as default };

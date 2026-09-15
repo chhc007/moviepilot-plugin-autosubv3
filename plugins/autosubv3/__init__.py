@@ -49,7 +49,7 @@ except Exception:
 
 class AutoSubv3(AutoSubv3CompatMixin, _PluginBase):
     # 插件名称
-    plugin_name = "AI字幕生成(联动版·HymT2定制)"
+    plugin_name = "AI字幕生成(联动版·SHIELD专用版)"
     # 插件描述
     plugin_desc = "自动生成字幕并翻译成中文，支持 faster-whisper 识别、字幕提取、大模型并发翻译，并可联动字幕匹配功能。定制版内置 Hy-MT2 专用翻译方案。"
     # 插件图标
@@ -57,7 +57,7 @@ class AutoSubv3(AutoSubv3CompatMixin, _PluginBase):
     # 主题色
     plugin_color = "#2C4F7E"
     # 插件版本
-    plugin_version = "3.6.0"
+    plugin_version = "3.6.1"
     # 插件作者
     plugin_author = "ifsherlock, chhc007"
     # 作者主页
