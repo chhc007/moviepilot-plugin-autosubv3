@@ -52,15 +52,42 @@ def build_prompt(batch_texts: List[str], ctx_texts: List[str], start_no: int) ->
 
 
 def parse(raw: str, start_no: int, count: int) -> Dict[int, str]:
-    """解析模型输出的编号行译文：'N. 译文'"""
+    """解析模型输出的编号行译文：'N. 译文'。
+
+    过滤模型回显 prompt 指令的行（如 "212. （以上共15行待译，必须逐行输出全部15条译文...）"），
+    这类行不是真实译文，不应写入字幕。
+    """
     got = {}
     pat = re.compile(r"^\s*(\d+)\s*[.、:：]\s*(.+)$", re.M)
     for m in pat.finditer(raw):
         kid = int(m.group(1))
         text = m.group(2).strip()
         if text and start_no <= kid < start_no + count:
+            if _looks_like_prompt_directive(text):
+                continue
             got[kid] = text
     return got
+
+
+def _looks_like_prompt_directive(text: str) -> bool:
+    """判断一段文本是否疑似 Hy-MT2 prompt 指令回显（正常字幕台词不应包含这些短语）。
+
+    使用含数量词的完整短语匹配（如"全部15条译文"），避免误杀含"条译文/译文"等
+    单词的普通台词。
+    """
+    if not text:
+        return False
+    patterns = (
+        r"共\s*\d+\s*行待译",           # 以上共15行待译
+        r"全部\s*\d+\s*条译文",         # 全部15条译文
+        r"从\s*\d+\s*行开始顺序编号",   # 从211行开始顺序编号
+        r"不得遗漏(?:任何一行|全部译文|译文)",   # 不得遗漏任何一行
+        r"必须逐行输出",                # 必须逐行输出
+        r"待翻译文本",                 # 【待翻译文本】
+        r"请结合背景信息",              # 请结合背景信息
+        r"等量的分隔符|绝对不可遗漏|转义或翻译|注意分隔符的位置",
+    )
+    return any(re.search(p, text) for p in patterns)
 
 
 def clean_backfill(out: str) -> str:
@@ -74,7 +101,10 @@ def clean_backfill(out: str) -> str:
     t = re.sub(r"^(译文|翻译)[:：]\s*", "", t)
     t = re.sub(r"^\d+[.、:：]\s*", "", t)
     t = re.sub(r'^["\'“]|["\'”]$', "", t)
-    return t.strip()
+    t = t.strip()
+    if _looks_like_prompt_directive(t):
+        return ""
+    return t
 
 
 # -------------------- 翻译器主类 --------------------
@@ -244,9 +274,16 @@ class Hymt2Translator:
         results = {}  # subs索引 -> 译文
         stats = {'batches': 0, 'first_ok': 0, 'retry_ok': 0, 'backfill': 0, 'missing': 0}
         start_t = time.time()
+        total_rows = len(valid)
+        total_batches = (total_rows + batch_size - 1) // batch_size
+        self._info(
+            f"Hy-MT2翻译开始：待译 {total_rows} 行，共 {total_batches} 批"
+            f"（每批{batch_size}行，上下文{ctx_win}，重试{max_retries}次，单行兜底{'开' if use_fallback else '关'}）"
+        )
 
-        for start in range(0, len(valid), batch_size):
+        for batch_index, start in enumerate(range(0, total_rows, batch_size), start=1):
             chunk = valid[start:start + batch_size]
+            batch_t = time.time()
             stats['batches'] += 1
             batch_texts = [t for _, t in chunk]
             ctx_b = valid_texts[max(0, start - ctx_win):start]
@@ -268,6 +305,11 @@ class Hymt2Translator:
             else:
                 missing = [k for k in range(start + 1, start + len(chunk) + 1) if k not in got]
                 if use_fallback:
+                    if missing:
+                        self._info(
+                            f"Hy-MT2批次[{start + 1}-{start + len(chunk)}] 缺失 {len(missing)} 行，"
+                            f"开始单行兜底补译"
+                        )
                     for k in missing:
                         idx = start + (k - start - 1)
                         t = self.backfill(valid_texts[idx], valid_texts[max(0, idx - 5):idx])
@@ -283,6 +325,20 @@ class Hymt2Translator:
             for k, item in enumerate(chunk, start=start + 1):
                 if k in got:
                     results[item[0]] = got[k]
+
+            # 进度日志：每批输出已译行数/总行数、百分比、本批与累计耗时、预计剩余
+            done_rows = min(start + len(chunk), total_rows)
+            percent = int(done_rows * 100 / total_rows) if total_rows else 100
+            elapsed = time.time() - start_t
+            eta_text = ""
+            if done_rows and done_rows < total_rows and elapsed > 0:
+                eta_seconds = int(elapsed / done_rows * (total_rows - done_rows))
+                eta_text = f"，预计剩余约{eta_seconds}秒"
+            self._info(
+                f"Hy-MT2翻译进度 {batch_index}/{total_batches} 批"
+                f"（{done_rows}/{total_rows} 行，{percent}%）"
+                f"，本批{round(time.time() - batch_t, 1)}秒，累计{round(elapsed)}秒{eta_text}"
+            )
 
         # 译文写回字幕(仅中文替换content)
         for i, item in enumerate(subs):
