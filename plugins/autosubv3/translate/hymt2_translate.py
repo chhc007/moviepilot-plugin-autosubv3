@@ -211,7 +211,12 @@ class Hymt2Translator:
             try:
                 resp = client.client.chat.completions.create(
                     model=model,
-                    messages=[{"role": "user", "content": prompt}]
+                    messages=[{"role": "user", "content": prompt}],
+                    # 关键：显式扩大上下文窗口。Ollama 默认 num_ctx 只有 2048/4096，
+                    # 批量 prompt(20行) + 上下文(10行) + 生成 20 行译文会顶到 context 边界，
+                    # llama.cpp 超出后直接中断连接导致 OpenAI 兼容层报 500 unexpected EOF。
+                    # 注意：Ollama 兼容端点只认顶层平铺的 num_ctx，不认嵌套 options（实测）。
+                    extra_body={"num_ctx": 8192},
                 )
                 return (resp.choices[0].message.content or "").strip()
             except Exception as e:

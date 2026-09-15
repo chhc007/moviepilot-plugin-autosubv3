@@ -3,7 +3,7 @@
     "name": "AI字幕生成(联动版·SHIELD专用版)",
     "description": "自动生成字幕并翻译成中文，支持 faster-whisper 识别、字幕提取和大模型并发翻译，可联动字幕匹配功能。定制版在 ifsherlock 原版基础上内置 Hy-MT2 专用翻译方案。",
     "labels": "字幕,AI,翻译",
-    "version": "3.6.2",
+    "version": "3.6.3",
     "icon": "https://raw.githubusercontent.com/ifsherlock/MoviePilot-Plugins/main/icons/autosubtitles.jpeg",
     "author": "ifsherlock, chhc007",
     "author_url": "https://github.com/chhc007",
@@ -13,6 +13,7 @@
     "v3": false,
     "repo": "https://github.com/chhc007/moviepilot-plugin-autosubv3",
     "history": {
+      "v3.6.3": "修复 Hy-MT2 报错 500 unexpected EOF：Ollama 默认 num_ctx 仅 2048/4096，批量翻译 prompt(20行+10行上下文+指令)会顶到 context 边界，llama.cpp 超界中断连接导致 OpenAI 兼容层返回 500；chat() 显式传 num_ctx=8192（实测 Ollama 兼容端点只认顶层平铺参数，不认嵌套 options）。实测长 prompt 请求由必失败变为稳定返回且 20/20 行解析成功",
       "v3.6.2": "修复 Hy-MT2 翻译质量问题：①prompt 指令回显被写进字幕（模型把『以上共N行待译，必须逐行输出全部N条译文…』锚点回显为编号行，parse 只认数字开头导致指令文本被当译文写入）；parse/clean_backfill 增加指令特征正则过滤（含数量词的完整短语匹配，避免误杀普通台词）；②翻译进度日志：每批输出已译行数/百分比/本批耗时/预计剩余时间，翻译开始输出总览",
       "v3.6.1": "修复 Hy-MT2 开关不显示：v3 插件配置页由前端 Vue 组件渲染（get_render_mode=vue），此前只改了后端 Python 表单导致开关未出现在界面；本版在 Config.vue 补齐 Hy-MT2 配置区（use_hymt2 开关 + URL/密钥/模型/批量/上下文/重试/单行兜底字段，v-show 联动）并重新构建 dist；插件显示名升级为 AI字幕生成(联动版·SHIELD专用版)",
       "v3.6.0": "定制版：移植 AutoSubv2 的 Hy-MT2 专用字幕翻译方案（官方 Structured Data 2 模板结构化批量翻译，行数严格保持、防合译错位、漏行自动重试+单行兜底，输出仅中文译文替换原字幕内容）。新增 use_hymt2 开关与 hy_mt2_key/url/model/batch_size/context_window/max_retries/fallback 独立配置（默认值同 AutoSubv2：url=http://192.168.123.146:11436，model=hymt2-q8，batch=20，context=10，retries=3，fallback=开启）；Hy-MT2 走独立 OpenAI 兼容客户端旁路，不影响 v3 端点池体系；翻译入口 _AutoSubv3__translate_zh_subtitle 增加 hymt2 分支，插件 ID/类名保持 AutoSubv3，海拉鲁字幕大师联动零改动。基于 ifsherlock v3.5.61 全量功能"
